@@ -4,12 +4,27 @@ import { describe, expect, it } from 'vitest';
 
 const handler = readFileSync(resolve(process.cwd(), 'src/handler.ts'), 'utf8');
 const wrangler = readFileSync(resolve(process.cwd(), 'wrangler.jsonc'), 'utf8');
+const admin = readFileSync(resolve(process.cwd(), 'src/admin.ts'), 'utf8');
+const analytics = readFileSync(resolve(process.cwd(), 'src/analytics.ts'), 'utf8');
 
 describe('müşteri ve yönetici akış sözleşmeleri', () => {
   it('yönetici yetkisini yalnızca sayısal kimlikle denetler', () => {
     expect(handler).toContain('String(userId) === env.ADMIN_TELEGRAM_ID');
     expect(handler).not.toMatch(/username\s*===/);
     expect(wrangler).toContain('1146589481');
+  });
+
+  it('/admin ve /stats komutlarını yalnızca yönetici kontrolünden sonra çalıştırır', () => {
+    expect(handler.indexOf("if (!isAdmin(userId, env)) return false")).toBeLessThan(handler.indexOf("command === '/admin'"));
+    expect(handler).toContain("command === '/stats'");
+    expect(admin).toContain('Son değişikliği geri al');
+    expect(admin).toContain('Bu içerik pasife alınacak');
+  });
+
+  it('istatistiklerde İstanbul gün sınırını ve tekil kullanıcıları kullanır', () => {
+    expect(analytics).toContain("date(last_seen_at,'+3 hours')");
+    expect(analytics).toContain('COUNT(DISTINCT user_id)');
+    expect(analytics).not.toContain('body');
   });
 
   it('yönetici listeleme, yanıtlama ve kapatma komutlarını sunar', () => {

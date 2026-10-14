@@ -5,8 +5,11 @@ import {
   getTicket, getTicketByNo, listOpenTickets, patchSession
 } from './db';
 import {
-  categoryMenu, config, findCategory, findQuestion, mainMenu, resolutionMenu, secondaryMenu
+  categoryMenu, config, mainMenu, resolutionMenu, secondaryMenu
 } from './ui';
+import { ensureContentSeeded, getCategory, getQuestion } from './content';
+import { recordEvents, recordUser, statsReport } from './analytics';
+import { adminMenu, cancelDraft, handleAdminCallback, handleAdminDraftText, showAdmin } from './admin';
 
 const HELP_TEXT = 'Komutlar:\n/start veya /menu — Ana menü\n/help — Yardım\n\nMenülerden ilerleyerek hazır yanıtlara ulaşabilirsin. Sorun çözülmezse ilgili akışın sonunda canlı destek talebi açabilirsin.';
 
@@ -27,14 +30,14 @@ async function showMainMenu(tg: TelegramClient, env: Env, userId: number, chatId
   const text = config.welcome;
   if (messageId) {
     try {
-      await tg.editMessage(chatId, messageId, text, mainMenu());
+      await tg.editMessage(chatId, messageId, text, await mainMenu(env.DB));
       await patchSession(env.DB, userId, { state: 'idle', menu_chat_id: chatId, menu_message_id: messageId });
       return;
     } catch {
       // Kullanıcı eski menü mesajını sildiyse yeni bir menü gönderilir.
     }
   }
-  const sent = await tg.sendMessage(chatId, text, mainMenu());
+  const sent = await tg.sendMessage(chatId, text, await mainMenu(env.DB));
   await patchSession(env.DB, userId, { state: 'idle', menu_chat_id: chatId, menu_message_id: sent.message_id });
 }
 
@@ -52,6 +55,21 @@ async function handleAdminCommand(tg: TelegramClient, env: Env, message: Telegra
   const userId = message.from!.id;
   if (!isAdmin(userId, env)) return false;
   const [command, ...rest] = text.trim().split(/\s+/);
+
+  if (command === '/admin') {
+    await cancelDraft(env.DB, userId);
+    await showAdmin(tg, message.chat.id);
+    return true;
+  }
+  if (command === '/stats') {
+    await tg.sendMessage(message.chat.id, await statsReport(env.DB), adminMenu());
+    return true;
+  }
+  if (command === '/cancel') {
+    await cancelDraft(env.DB, userId);
+    await tg.sendMessage(message.chat.id, 'Yönetim işlemi iptal edildi.', adminMenu());
+    return true;
+  }
 
   if (command === '/tickets') {
     const tickets = await listOpenTickets(env.DB);
@@ -109,13 +127,14 @@ async function handleMessage(tg: TelegramClient, env: Env, message: TelegramMess
   const session = await getSession(env.DB, user.id);
 
   if (await handleAdminCommand(tg, env, message, text)) return;
+  if (isAdmin(user.id, env) && await handleAdminDraftText(tg, env.DB, user.id, message.chat.id, text)) return;
   const command = text.split(/\s+/)[0].split('@')[0];
   if (command === '/start' || command === '/menu') {
     await showMainMenu(tg, env, user.id, message.chat.id, reusableMenuMessage(session, message.chat.id));
     return;
   }
   if (command === '/help') {
-    const adminExtra = isAdmin(user.id, env) ? '\n\nYönetici: /tickets, /reply, /close' : '';
+    const adminExtra = isAdmin(user.id, env) ? '\n\nYönetici: /admin, /stats, /tickets, /reply, /close' : '';
     await tg.sendMessage(message.chat.id, HELP_TEXT + adminExtra);
     return;
   }
@@ -181,25 +200,38 @@ async function handleCallback(tg: TelegramClient, env: Env, callback: CallbackQu
   const data = callback.data;
   await getSession(env.DB, userId);
 
+  if (data.startsWith('adm:')) {
+    if (!isAdmin(userId, env)) {
+      await tg.sendMessage(chatId, 'Bu işlem için yetkin yok.');
+      return;
+    }
+    await handleAdminCallback(tg, env.DB, userId, chatId, messageId, data);
+    return;
+  }
+
   if (data === 'menu' || data === 'resolved') {
     const prefix = data === 'resolved' ? 'Harika, sorunun çözüldüğüne sevindik! ✅\n\n' : '';
-    await tg.editMessage(chatId, messageId, prefix + config.welcome, mainMenu());
+    await tg.editMessage(chatId, messageId, prefix + config.welcome, await mainMenu(env.DB));
+    await recordEvents(env.DB, userId, [['menu_interaction'], ...(data === 'resolved' ? [['resolved'] as [string]] : [])]);
     await patchSession(env.DB, userId, { state: 'idle', menu_chat_id: chatId, menu_message_id: messageId });
     return;
   }
 
   if (data.startsWith('c:')) {
-    const category = findCategory(data.slice(2));
+    const category = await getCategory(env.DB, data.slice(2));
     if (!category) return;
+    await recordEvents(env.DB, userId, [['menu_interaction'], ['category_select', category.id]]);
     await tg.editMessage(chatId, messageId, category.intro, categoryMenu(category));
     await patchSession(env.DB, userId, { topic: category.label, menu_chat_id: chatId, menu_message_id: messageId });
     return;
   }
 
   if (data.startsWith('q:')) {
-    const [, categoryId, questionId] = data.split(':');
-    const question = findQuestion(categoryId, questionId);
+    const questionId = data.slice(2);
+    const question = await getQuestion(env.DB, questionId);
     if (!question) return;
+    const categoryId = questionId.split('__')[0];
+    await recordEvents(env.DB, userId, [['menu_interaction'], ['question_select', questionId]]);
     await tg.editMessage(chatId, messageId, question.answer, resolutionMenu(categoryId, question));
     await patchSession(env.DB, userId, { last_question_id: `${categoryId}:${questionId}`, topic: question.label });
     return;
@@ -207,7 +239,7 @@ async function handleCallback(tg: TelegramClient, env: Env, callback: CallbackQu
 
   if (data.startsWith('more:')) {
     const [, categoryId, questionId] = data.split(':');
-    const question = findQuestion(categoryId, questionId);
+    const question = await getQuestion(env.DB, questionId);
     if (!question) return;
     if (question.secondary?.length) {
       await tg.editMessage(chatId, messageId, 'Şunlardan biri yardımcı olabilir:', secondaryMenu(categoryId, question));
@@ -221,10 +253,14 @@ async function handleCallback(tg: TelegramClient, env: Env, callback: CallbackQu
   }
 
   if (data.startsWith('s:')) {
-    const [, categoryId, questionId, secondaryId] = data.split(':');
-    const question = findQuestion(categoryId, questionId);
+    const secondaryId = data.slice(2);
+    const row = await env.DB.prepare('SELECT question_id FROM bot_secondary_questions WHERE id=? AND active=1').bind(secondaryId).first<{question_id:string}>();
+    const questionId = row?.question_id ?? '';
+    const categoryId = questionId.split('__')[0];
+    const question = await getQuestion(env.DB, questionId);
     const secondary = question?.secondary?.find((item) => item.id === secondaryId);
     if (!question || !secondary) return;
+    await recordEvents(env.DB, userId, [['menu_interaction'], ['question_select', questionId]]);
     await tg.editMessage(chatId, messageId, secondary.answer, resolutionMenu(categoryId, question, true));
     return;
   }
@@ -270,6 +306,9 @@ async function handleCallback(tg: TelegramClient, env: Env, callback: CallbackQu
 }
 
 export async function handleUpdate(tg: TelegramClient, env: Env, update: TelegramUpdate): Promise<void> {
+  await ensureContentSeeded(env.DB);
+  const actor = update.callback_query?.from.id ?? update.message?.from?.id;
+  if (actor) await recordUser(env.DB, actor);
   if (update.callback_query) await handleCallback(tg, env, update.callback_query);
   else if (update.message) await handleMessage(tg, env, update.message);
 }
