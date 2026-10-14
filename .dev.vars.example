@@ -1,0 +1,4 @@
+# Bu dosyayı .dev.vars adıyla kopyalayın. Gerçek değerleri Git'e eklemeyin.
+TELEGRAM_BOT_TOKEN="Telegram BotFather tokeni"
+TELEGRAM_WEBHOOK_SECRET="En az 32 karakterlik rastgele bir değer"
+

@@ -1,0 +1,23 @@
+{
+  "name": "lina-macros-telegram-bot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run typecheck && npm test",
+    "deploy": "wrangler deploy",
+    "db:migrate:local": "wrangler d1 migrations apply lina-macros-support --local",
+    "db:migrate:remote": "wrangler d1 migrations apply lina-macros-support --remote"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261014.1",
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.4",
+    "wrangler": "^4.151.0"
+  }
+}

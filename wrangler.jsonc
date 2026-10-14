@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "lina-macros-destek-bot",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-14",
+  "workers_dev": true,
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  },
+  "vars": {
+    "ADMIN_TELEGRAM_ID": "1146589481"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "lina-macros-support",
+      "database_id": "327271dc-e249-4eb6-8586-43731663a257"
+    }
+  ]
+}

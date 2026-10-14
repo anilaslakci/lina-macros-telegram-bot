@@ -1,0 +1,96 @@
+{
+  "welcome": "Merhaba! Lina Macros destek botuna hoş geldin. 👋\n\nİhtiyacın olan konuyu aşağıdan seç; kısa ve net biçimde yardımcı olayım.",
+  "categories": [
+    {
+      "id": "packages",
+      "label": "🎮 Makro Paketleri ve Fiyatlar",
+      "intro": "Hangi paket hakkında bilgi almak istiyorsun?",
+      "questions": [
+        { "id": "pubg-steam", "label": "PUBG Steam", "answer": "PUBG Steam 3'ü 1 arada makro paketi 250 TL'dir. Satın alma: https://www.shopier.com/linamacros/33482000\n\nPaket kapsamı ve güncel ayrıntılar için Shopier ürün sayfasını kontrol edebilirsin." },
+        { "id": "pubg-mobile", "label": "PUBG Mobile (PC)", "answer": "PUBG Mobile (PC) makro paketi 250 TL'dir. Satın alma: https://www.shopier.com/linamacros/33090562\n\nPaket kapsamı ve güncel ayrıntılar için Shopier ürün sayfasını kontrol edebilirsin." },
+        { "id": "valorant", "label": "Valorant", "answer": "Valorant makro paketi 150 TL'dir. Satın alma: https://www.shopier.com/linamacros/33088510\n\nPaket kapsamı ve güncel ayrıntılar için Shopier ürün sayfasını kontrol edebilirsin." },
+        { "id": "cs2", "label": "CS2", "answer": "CS2 makro paketi 250 TL'dir. Satın alma: https://www.shopier.com/linamacros/33086748\n\nPaket kapsamı ve güncel ayrıntılar için Shopier ürün sayfasını kontrol edebilirsin." }
+      ]
+    },
+    {
+      "id": "compatibility",
+      "label": "🖱️ Mouse Uyumluluğu",
+      "intro": "Uyumlulukla ilgili hangi konuyu kontrol edelim?",
+      "questions": [
+        {
+          "id": "bloody",
+          "label": "Bloody Mouse modelleri",
+          "answer": "Paketler Bloody yazılımını kullanan Bloody mouse modelleri için hazırlanır. Model ve yazılım sürümüne göre farklılık olabileceği için satın almadan önce modelini kontrol etmeni öneririz.",
+          "secondary": [
+            { "id": "model-check", "label": "Modelimi nasıl kontrol ederim?", "answer": "Mouse'un altındaki model koduna ve bilgisayarındaki Bloody yazılımında görünen cihaz adına bakabilirsin. Emin değilsen canlı destek talebine model kodunu yaz; birlikte kontrol edelim." }
+          ]
+        },
+        {
+          "id": "a4tech",
+          "label": "A4Tech / .mgn desteği",
+          "answer": ".mgn dosyalarını destekleyen A4Tech modellerinde uyumluluk mümkün olabilir. Her model aynı özelliği sunmadığından, satın almadan önce modelinin .mgn içe aktarmayı desteklediğini doğrulamalısın.",
+          "secondary": [
+            { "id": "mgn-check", "label": ".mgn desteğini nasıl anlarım?", "answer": "Mouse yazılımında makro dosyası içe aktarma bölümünü ve desteklenen dosya uzantılarını kontrol et. Listede .mgn yoksa uyumlu olduğunu varsayma; model kodunla destek talebi açabilirsin." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "installation",
+      "label": "⚙️ Kurulum Yardımı",
+      "intro": "Kurulumun hangi aşamasında yardıma ihtiyacın var?",
+      "questions": [
+        {
+          "id": "guide",
+          "label": "Türkçe kurulum rehberi",
+          "answer": "Paketle birlikte verilen Türkçe kurulum rehberindeki adımları sırayla uygula. Dosyaları çıkartmadan önce arşivi tamamen indir ve doğru mouse profilini seçtiğinden emin ol.",
+          "secondary": [
+            { "id": "import", "label": "Dosya içe aktarılmıyor", "answer": "Önce kullandığın mouse yazılımının güncel ve cihazı görüyor olduğundan emin ol. Ardından paketteki dosyayı rehberde belirtilen menüden içe aktar. Hata sürerse hata metnini ve mouse modelini destek talebine ekle." },
+            { "id": "profile", "label": "Profil çalışmıyor", "answer": "Doğru oyun profilinin etkin olduğundan, oyun içi tuşların rehberdeki ayarlarla eşleştiğinden ve mouse yazılımının arka planda çalıştığından emin ol." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "delivery",
+      "label": "📦 Sipariş ve Teslimat",
+      "intro": "Sipariş veya teslimatla ilgili konuyu seç.",
+      "questions": [
+        {
+          "id": "download",
+          "label": "Dosyaya ulaşamıyorum",
+          "answer": "Önce Shopier siparişinde kullandığın iletişim bilgilerini ve teslimat bildirimlerini kontrol et. Kart veya ödeme bilgilerini sohbette paylaşma.",
+          "secondary": [
+            { "id": "missing", "label": "Teslimat bildirimi gelmedi", "answer": "Spam/gereksiz klasörünü ve siparişte kullandığın iletişim bilgisini kontrol et. Hâlâ ulaşamıyorsan sipariş numaranı belirterek destek talebi oluşturabilirsin; kart bilgisi paylaşma." },
+            { "id": "broken", "label": "İndirme bağlantısı açılmıyor", "answer": "Bağlantıyı farklı bir tarayıcıda ve VPN kapalıyken tekrar dene. Sorun sürerse hata ekranını ve sipariş numaranı destek talebine ekle; kart bilgisi paylaşma." }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "faq",
+      "label": "❓ Sık Sorulan Sorular",
+      "intro": "Merak ettiğin konuyu seç.",
+      "questions": [
+        { "id": "risk", "label": "Oyun kuralları ve hesap riski", "answer": "Makro kullanımı bazı oyunların kurallarına aykırı olabilir ve hesap yaptırımı riski taşıyabilir. Güvenli veya bansız kullanım garantisi vermiyoruz. Kullanmadan önce oyunun güncel kurallarını incelemek ve riski değerlendirmek kullanıcının sorumluluğundadır." },
+        { "id": "guarantee", "label": "Her ayarda aynı sonucu verir mi?", "answer": "Hayır. Mouse modeli, DPI, oyun hassasiyeti, çözünürlük ve oyun güncellemeleri sonucu etkileyebilir. Paketteki rehbere göre kişisel ayarlarını yapman gerekebilir." }
+      ]
+    },
+    {
+      "id": "updates",
+      "label": "🔄 Güncelleme Desteği",
+      "intro": "Güncelleme konusunda hangi yardıma ihtiyacın var?",
+      "questions": [
+        {
+          "id": "get-update",
+          "label": "Güncel dosyaya ulaşma",
+          "answer": "Satın aldığın paket için sana iletilen güncelleme kanalını ve mevcut indirme bağlantısını kontrol et.",
+          "secondary": [
+            { "id": "old-link", "label": "Eski bağlantı çalışmıyor", "answer": "Sipariş numaranı ve satın aldığın paketi belirterek destek talebi oluştur. Kart veya ödeme bilgilerini paylaşma; doğrulama sonrasında uygun yönlendirme yapılır." },
+            { "id": "game-update", "label": "Oyun güncellemesinden sonra sorun", "answer": "Oyun ve mouse yazılımı güncellemelerinden sonra ayarlar değişebilir. Önce profili yeniden etkinleştirip rehberdeki oyun içi değerleri kontrol et. Sorun sürerse oyun sürümü ve mouse modelinle destek talebi aç." }
+          ]
+        }
+      ]
+    }
+  ]
+}
