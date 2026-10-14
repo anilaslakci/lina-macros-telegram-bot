@@ -23,6 +23,12 @@ describe('müşteri ve yönetici akış sözleşmeleri', () => {
     expect(handler).toContain('müşteri yanıtı');
   });
 
+  it('boştaki serbest mesajlarda menüyü gösterir ve mevcut menü mesajını yeniden kullanır', () => {
+    expect(handler).not.toContain('Sana doğru seçenekleri gösterebilmem için /menu');
+    expect(handler).toContain('showMainMenu(tg, env, user.id, message.chat.id, reusableMenuMessage(session, message.chat.id))');
+    expect(handler).toContain("session.menu_chat_id === chatId ? session.menu_message_id ?? undefined : undefined");
+  });
+
   it('yanıt süresi garantisi vermez ve hassas ödeme verisini istemez', () => {
     expect(handler).toContain('Kesin bir yanıt süresi taahhüt edemiyoruz');
     expect(handler).toContain('Kart, şifre veya ödeme bilgisi paylaşma');

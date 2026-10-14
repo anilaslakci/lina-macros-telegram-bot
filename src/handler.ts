@@ -1,4 +1,4 @@
-import type { CallbackQuery, Env, TelegramMessage, TelegramUpdate, TelegramUser, Ticket } from './types';
+import type { CallbackQuery, Env, Session, TelegramMessage, TelegramUpdate, TelegramUser, Ticket } from './types';
 import { TelegramClient } from './telegram';
 import {
   addTicketMessage, closeTicket, createTicket, getOpenTicketForUser, getSession,
@@ -26,12 +26,20 @@ function ticketSummary(ticket: Ticket): string {
 async function showMainMenu(tg: TelegramClient, env: Env, userId: number, chatId: number, messageId?: number): Promise<void> {
   const text = config.welcome;
   if (messageId) {
-    await tg.editMessage(chatId, messageId, text, mainMenu());
-    await patchSession(env.DB, userId, { state: 'idle', menu_chat_id: chatId, menu_message_id: messageId });
-  } else {
-    const sent = await tg.sendMessage(chatId, text, mainMenu());
-    await patchSession(env.DB, userId, { state: 'idle', menu_chat_id: chatId, menu_message_id: sent.message_id });
+    try {
+      await tg.editMessage(chatId, messageId, text, mainMenu());
+      await patchSession(env.DB, userId, { state: 'idle', menu_chat_id: chatId, menu_message_id: messageId });
+      return;
+    } catch {
+      // Kullanıcı eski menü mesajını sildiyse yeni bir menü gönderilir.
+    }
   }
+  const sent = await tg.sendMessage(chatId, text, mainMenu());
+  await patchSession(env.DB, userId, { state: 'idle', menu_chat_id: chatId, menu_message_id: sent.message_id });
+}
+
+export function reusableMenuMessage(session: Session, chatId: number): number | undefined {
+  return session.menu_chat_id === chatId ? session.menu_message_id ?? undefined : undefined;
 }
 
 async function notifyAdminNewTicket(tg: TelegramClient, env: Env, ticket: Ticket): Promise<void> {
@@ -98,12 +106,12 @@ async function handleMessage(tg: TelegramClient, env: Env, message: TelegramMess
   const text = message.text?.trim();
   if (!text) return;
   const user = message.from;
-  await getSession(env.DB, user.id);
+  const session = await getSession(env.DB, user.id);
 
   if (await handleAdminCommand(tg, env, message, text)) return;
   const command = text.split(/\s+/)[0].split('@')[0];
   if (command === '/start' || command === '/menu') {
-    await showMainMenu(tg, env, user.id, message.chat.id);
+    await showMainMenu(tg, env, user.id, message.chat.id, reusableMenuMessage(session, message.chat.id));
     return;
   }
   if (command === '/help') {
@@ -112,7 +120,6 @@ async function handleMessage(tg: TelegramClient, env: Env, message: TelegramMess
     return;
   }
 
-  const session = await getSession(env.DB, user.id);
   if (isAdmin(user.id, env) && session.state === 'admin_reply' && session.active_ticket_id) {
     const ticket = await getTicket(env.DB, session.active_ticket_id);
     if (!ticket || ticket.status !== 'open') {
@@ -162,7 +169,7 @@ async function handleMessage(tg: TelegramClient, env: Env, message: TelegramMess
     return;
   }
 
-  await tg.sendMessage(message.chat.id, 'Sana doğru seçenekleri gösterebilmem için /menu komutunu kullanabilirsin.');
+  await showMainMenu(tg, env, user.id, message.chat.id, reusableMenuMessage(session, message.chat.id));
 }
 
 async function handleCallback(tg: TelegramClient, env: Env, callback: CallbackQuery): Promise<void> {
